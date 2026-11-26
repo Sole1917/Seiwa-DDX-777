@@ -148,7 +148,8 @@ Plugin\build\ddx_smoke_artefacts\Release\ddx_smoke.exe
   0.95, eguagliando la costante originale).
 - Le misure hardware rimanenti (unità non accessibile: livelli −24/−30/−36 dBFS, R_in,
   C_RECT, conferma pinout) sono tracciate in `Prep/04_lacune.md` e non bloccano la beta.
-- Questo progetto è stato sviluppato con l'uso di diversi agenti AI gratuiti (attraverso OpenCode) per la parte di coding e analisi, in un processo di vibecoding collaborativo. Di conseguenza, il codice sorgente e le documentazioni sono il risultato di tale processo: il progetto non è di proprietà di alcun singolo individuo, ma è reso disponibile come open source per trasparenza e riproducibilità.
+- Questo progetto è stato sviluppato con l'uso di diversi agenti AI gratuiti (attraverso OpenCode) per la parte di coding e analisi, in un processo di vibecoding collaborativo. Di conseguenza, il codice sorgente e le documentazioni sono il risultato di tale processo: il progetto non è di proprietà di alcun singolo individuo, ma è reso disponibile come open source per trasparenza e riproducibilità. Questo progetto è perciò rilasciato sotto i termini della **Creative Commons
+Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)**
 
 ## Lacune
 
