@@ -1,0 +1,192 @@
+#pragma once
+
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <algorithm>
+#include <cmath>
+
+class MasterOutKnob : public juce::Component,
+                      private juce::AudioProcessorParameter::Listener
+{
+public:
+    MasterOutKnob (juce::RangedAudioParameter& parameter)
+        : parameter (parameter),
+          lastRawValue_ (parameter.getValue())
+    {
+        parameter.addListener (this);
+        setInterceptsMouseClicks (true, true);
+        DBG("MASTER_OUT constructor, bounds=" << getBounds().toString() 
+            << ", visible=" << isVisible() 
+            << ", interceptsMouse=" << getInterceptsMouseClicks());
+    }
+
+    ~MasterOutKnob() override
+    {
+        parameter.removeListener (this);
+    }
+
+    void paint (juce::Graphics& g) override
+    {
+        const auto b = getLocalBounds().toFloat();
+        const float cx = b.getCentreX();  // 48
+        const float cyKnob = 62.0f;
+        const float cyArc  = 24.0f;
+        const float val = std::clamp (value01(), 0.0f, 1.0f);
+
+        const juce::Colour kBezel (0xff7D7D7D);
+        const juce::Colour kFace  (0xff4B4949);
+        const juce::Colour kCross (0xff636363);
+
+        // ---- bezel (outer ring, r=30) ----
+        g.setColour (kBezel);
+        g.drawEllipse (juce::Rectangle<float> (cx - 29.5f, cyKnob - 29.5f, 59.0f, 59.0f), 5.0f);
+
+        // ---- face (inner disk, r=25) ----
+        g.setColour (kFace);
+        g.fillEllipse (juce::Rectangle<float> (cx - 25.0f, cyKnob - 25.0f, 50.0f, 50.0f));
+
+        // ---- cross (4 arms, base "+", rotate value01()*(-135 deg)) ----
+        {
+            const float armLen = 15.0f;
+            const float armW   = 4.0f;
+
+            juce::Path cross;
+            cross.addRectangle (cx - armW * 0.5f, cyKnob - armLen, armW, armLen * 2.0f);
+            cross.addRectangle (cx - armLen, cyKnob - armW * 0.5f, armLen * 2.0f, armW);
+
+            const double rotationDeg = static_cast<double> (val) * (-135.0);
+            cross.applyTransform (juce::AffineTransform::rotation (
+                static_cast<float> (juce::degreesToRadians (rotationDeg)), cx, cyKnob));
+
+            g.setColour (kCross);
+            g.fillPath (cross);
+        }
+
+        // ---- arc (visible only during drag) ----
+        if (arcVisible_)
+        {
+            const float fill  = 0.1f + val * 0.9f;  // 0.1 mute .. 1.0 unity
+
+            // Arc geometry: radius 24, span ±45°, centered at (48, 24)
+            const float arcCX = 48.0f;
+            const float arcCY = 24.0f;
+            const float arcR  = 24.0f;
+            const float arcThick = 4.0f;
+            const double startDeg = -45.0;
+            const double endDeg   =  45.0;
+
+            juce::Path arcPath;
+            arcPath.addCentredArc (arcCX, arcCY, arcR, arcR, 0.0f,
+                                   juce::degreesToRadians (startDeg),
+                                   juce::degreesToRadians (endDeg), true);
+
+            // Clip mask on EFFECTIVE arc bounds (not full circle)
+            const float arcHalfWidth = arcR * std::sin (juce::degreesToRadians (45.0f));
+            const float arcLeft  = arcCX - arcHalfWidth;
+            const float arcRight = arcCX + arcHalfWidth;
+            const float arcWidth = arcRight - arcLeft;
+
+            juce::Rectangle<float> arcClipBounds (arcLeft, arcCY - arcR, arcWidth, arcR);
+            g.saveState();
+            g.reduceClipRegion (arcClipBounds.toNearestInt().withWidth (
+                static_cast<int> (std::round (arcWidth * fill))));
+            g.setColour (juce::Colours::white);
+            g.strokePath (arcPath, juce::PathStrokeType (arcThick,
+                                                         juce::PathStrokeType::curved,
+                                                         juce::PathStrokeType::rounded));
+            g.restoreState();
+        }
+    }
+
+    void parameterValueChanged (int, float newValue) override
+    {
+        DBG("MASTER_OUT paramChanged, newValue=" << newValue);
+        lastRawValue_ = newValue;
+        repaint();
+    }
+    void parameterGestureChanged (int, bool) override {}
+
+    void setArcVisibleForPreview (bool shouldShowArc)
+    {
+        arcVisible_ = shouldShowArc;
+        repaint();
+    }
+
+    void mouseDown (const juce::MouseEvent& e) override
+    {
+        DBG("MASTER_OUT mouseDown at " << e.x << "," << e.y);
+        if (e.getNumberOfClicks() > 1)
+        {
+            setValue01 (parameter.getDefaultValue());
+            return;
+        }
+
+        dragging_ = true;
+        arcVisible_ = true;
+        dragStartY_ = static_cast<float> (e.y);
+        dragStartValue_ = value01();
+        repaint();
+    }
+
+    void mouseDrag (const juce::MouseEvent& e) override
+    {
+        DBG("MASTER_OUT mouseDrag at " << e.x << "," << e.y << " val=" << value01());
+        if (! dragging_)
+            return;
+
+        const float delta = (dragStartY_ - e.y) * (4.0f / static_cast<float> (getHeight()));
+        float v = dragStartValue_ + delta;
+        v = juce::jlimit (0.0f, 1.0f, v);
+
+        if (v != value01())
+            setValue01 (v);
+
+        // Update cache immediately to avoid race condition
+        const auto& range = parameter.getNormalisableRange();
+        lastRawValue_ = range.convertFrom0to1(v);
+
+        repaint();
+    }
+
+    void mouseUp (const juce::MouseEvent&) override
+    {
+        DBG("MASTER_OUT mouseUp");
+        dragging_ = false;
+        arcVisible_ = false;
+        repaint();
+    }
+
+    void mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails& details) override
+    {
+        const float dir = details.deltaY > 0.0f ? 1.0f : (details.deltaY < 0.0f ? -1.0f : 0.0f);
+        if (dir == 0.0f)
+            return;
+
+        float v = value01() + dir * 0.05f;
+        v = juce::jlimit (0.0f, 1.0f, v);
+
+        if (v != value01())
+            setValue01 (v);
+        repaint();
+    }
+
+private:
+    float value01() const
+    {
+        const auto& range = parameter.getNormalisableRange();
+        return range.convertTo0to1 (lastRawValue_);
+    }
+
+    void setValue01 (float v)
+    {
+        parameter.setValueNotifyingHost (v);
+    }
+
+    juce::RangedAudioParameter& parameter;
+    float lastRawValue_ = 0.0f;
+    float dragStartY_ = 0.0f;
+    float dragStartValue_ = 0.0f;
+    bool dragging_ = false;
+    bool arcVisible_ = false;
+
+    JUCE_DECLARE_NON_COPYABLE (MasterOutKnob)
+};

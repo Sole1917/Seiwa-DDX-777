@@ -1,0 +1,54 @@
+# Build
+build/
+JuceLibraryCode/
+*.o
+*.obj
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+
+# Snapshots (backup locali)
+.snapshot_*/
+
+# Output temporanei
+build/verify_out/
+build/diag_hf/
+build/meas_13h_bis/
+build/char_thd*/
+build/p3_diag/
+
+# Debug spuri e artefatti generati
+fix_debug*.py
+test_out.wav
+presets/
+
+# Sistema
+Thumbs.db
+.DS_Store
+# Blender render temporanei
+tools/blender/tmp/
+tools/blender/debug_upscale/
+*.blend1
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Mask derivate (rigenerate da make_panel_mask.py)
+tools/blender/panel_*_mask.png
+
+
+
+# Intermedi pipeline panel (17-fix5): rigenerati da
+# apply_panel_gradient.py / apply_panel_shadow.py
+tools/blender/panel_base_noshadow*.png
+tools/blender/shadow_pass_*.png

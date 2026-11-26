@@ -1,0 +1,4 @@
+# 15: cartella degli asset renderizzati (docs/ASSET_BRIEF.md, contratto B.5).
+# Vuota di default: nessun PNG viene generato in questa sessione (compito
+# dell'artista 3D). CMake incorpora automaticamente qualsiasi .png che finisce
+# qui (glob CONFIGURE_DEPENDS), senza file aggiuntivi.
