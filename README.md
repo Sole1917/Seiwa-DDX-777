@@ -1,13 +1,13 @@
 ﻿# Seiwa DDX-777 — Emulazione plugin (Beta 1.0)
 
 Emulazione software del **Seiwa DDX-777 Digital Delay** (1985) come plugin audio
-**VST3** ed **Applicazione Standalone** per Windows, basata sul modello DSP calibrato
+**VST3** per Windows, basata sul modello DSP calibrato
 sulle registrazioni hardware dell'unità originale.
 
 - Stato: **Beta 1.0** (versione host 1.0.0)
 - Framework: **JUCE 8.0.9** (pinned, FetchContent)
 - Build: Windows x64, MSVC (VS Build Tools v18), cmake ≥ 3.22
-- Autori: emulazione non ufficiale; nessun rapporto con Seiwa. © 2026 Sole
+- Autori: emulazione non ufficiale; nessun rapporto con Seiwa. 2026 Sole
 
 ---
 
@@ -57,7 +57,7 @@ Artefatti (in `Plugin/build/`):
 | `ddx_smoke_artefacts/Release/ddx_smoke.exe` | smoke test audio headless (11 test, 48k/44.1k) |
 | `ddx_screenshot_artefacts/Release/ddx_screenshot.exe` | screenshot UI headless (PNG) |
 
-**Deploy (obbligatorio a ogni build)**: Reaper scanne solo la cartella
+**Deploy (obbligatorio a ogni build)**: Reaper scannerizza solo la cartella
 `C:\Users\<utente>\AppData\Local\Programs\Common\VST3` — dopo ogni build copiare sempre
 un copia completa del bundle lì (sostituendo l'eventuale vecchia):
 
@@ -148,6 +148,7 @@ Plugin\build\ddx_smoke_artefacts\Release\ddx_smoke.exe
   0.95, eguagliando la costante originale).
 - Le misure hardware rimanenti (unità non accessibile: livelli −24/−30/−36 dBFS, R_in,
   C_RECT, conferma pinout) sono tracciate in `Prep/04_lacune.md` e non bloccano la beta.
+- Questo progetto è stato sviluppato con l'uso di diversi agenti AI gratuiti (attraverso OpenCode) per la parte di coding e analisi, in un processo di vibecoding collaborativo. Di conseguenza, il codice sorgente e le documentazioni sono il risultato di tale processo: il progetto non è di proprietà di alcun singolo individuo, ma è reso disponibile come open source per trasparenza e riproducibilità.
 
 ## Lacune
 
